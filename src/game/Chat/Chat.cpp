@@ -36,6 +36,7 @@
 #include "GameEvents/GameEventMgr.h"
 
 #include <cstdarg>
+#include "Hardcore/HardcoreMgr.h"
 
 // Supported shift-links (client generated and server side)
 // |color|Harea:area_id|h[name]|h|r
@@ -989,6 +990,7 @@ ChatCommand* ChatHandler::getCommandTable()
 #ifdef BUILD_PLAYERBOT
         { "bot",            SEC_PLAYER,         false, &ChatHandler::HandlePlayerbotCommand,           "", nullptr },
 #endif
+        { "hardcore",       SEC_GAMEMASTER,     false, &ChatHandler::HandleHardcoreCommand,            "", nullptr },
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 
@@ -2113,6 +2115,52 @@ bool ChatHandler::CheckEscapeSequences(const char* message)
         DEBUG_LOG("ChatHandler::isValidChatMessage EOF in active sequence");
 
     return validSequence == validSequenceIterator;
+}
+
+bool ChatHandler::HandleHardcoreCommand(char* args)
+{
+    string command = args;
+    char* cmd = strtok((char*)args, " ");
+    char* charname = strtok(NULL, " ");
+    if (cmd)
+    {
+        if (!strcmp(cmd, "reset"))
+        {
+            sHardcoreMgr.RemoveAllLoot();
+            sHardcoreMgr.RemoveAllGraves();
+        }
+        else if(!strcmp(cmd, "resetgraves"))
+        {
+            sHardcoreMgr.RemoveAllGraves();
+        }
+        else if (!strcmp(cmd, "resetloot"))
+        {
+            sHardcoreMgr.RemoveAllLoot();
+        }
+        else if (!strcmp(cmd, "spawnloot"))
+        {
+            if (m_session && m_session->GetPlayer())
+            {
+                sHardcoreMgr.CreateLoot(m_session->GetPlayer());
+            }
+        }
+        else if (!strcmp(cmd, "spawngrave"))
+        {
+            if (m_session && m_session->GetPlayer())
+            {
+                sHardcoreMgr.CreateGrave(m_session->GetPlayer());
+            }
+        }
+        else if (!strcmp(cmd, "leveldown"))
+        {
+            if (m_session && m_session->GetPlayer())
+            {
+                sHardcoreMgr.LevelDown(m_session->GetPlayer());
+            }
+        }
+    }
+
+    return true;
 }
 
 Player* ChatHandler::getSelectedPlayer() const
