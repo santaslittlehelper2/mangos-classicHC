@@ -69,6 +69,7 @@
 #endif
 
 #include <cmath>
+#include "Hardcore/HardcoreMgr.h"
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
 
@@ -1611,6 +1612,8 @@ void Player::SetDeathState(DeathState s)
 
         if (InstanceData* mapInstance = GetInstanceData())
             mapInstance->OnPlayerDeath(this);
+	    
+        sHardcoreMgr.OnPlayerDeath(this);
     }
 
     Unit::SetDeathState(s);
@@ -4293,6 +4296,11 @@ void Player::BuildPlayerRepop()
 
 void Player::ResurrectPlayer(float restore_percent, bool applySickness)
 {
+ if(!sHardcoreMgr.CanRevive(this))
+    {
+        return;
+    }
+
     SetDeathState(ALIVE);
 
     if (getRace() == RACE_NIGHTELF)
@@ -4700,6 +4708,8 @@ void Player::RepopAtGraveyard()
         if (updateVisibility && IsInWorld())
             UpdateVisibilityAndView();
     }
+
+    sHardcoreMgr.OnPlayerReleaseSpirit(this, ClosestGrave);
 }
 
 void Player::JoinedChannel(Channel* c)
